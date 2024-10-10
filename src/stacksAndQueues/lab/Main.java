@@ -2,6 +2,7 @@ package stacksAndQueues.lab;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class Main {
     private static final Scanner SCANNER = new Scanner(System.in);
@@ -11,7 +12,101 @@ public class Main {
 //        simpleCalculator();
 //        decimalToBinaryConverter();
 //        matchingBrackets();
-        printerQueue();
+//        printerQueue();
+//        hotPotato();
+//        mathPotato();
+//        browserHistoryUpdate();
+    }
+
+    private static void browserHistoryUpdate() {
+        Deque<String> backStack = new ArrayDeque<>();
+        Deque<String> forwardStack = new ArrayDeque<>();
+
+        String input = SCANNER.nextLine();
+
+        while (!"Home".equals(input)) {
+            if ("back".equals(input)) {
+                goBack(backStack, forwardStack);
+
+            } else if ("forward".equals(input)) {
+                goForward(forwardStack, backStack);
+
+            } else {
+                visitPage(backStack, input, forwardStack);
+            }
+
+            input = SCANNER.nextLine();
+        }
+    }
+
+    private static void visitPage(Deque<String> backStack, String input, Deque<String> forwardStack) {
+        backStack.push(input);
+        forwardStack.clear();
+        System.out.println(input);
+    }
+
+    private static void goForward(Deque<String> forwardStack, Deque<String> backStack) {
+        if (forwardStack.isEmpty()) {
+            System.out.println("no next URLs");
+        } else {
+            backStack.push(forwardStack.pop());
+            System.out.println(backStack.peek());
+        }
+    }
+
+    private static void goBack(Deque<String> backStack, Deque<String> forwardStack) {
+        if (backStack.size() <= 1) {
+            System.out.println("no previous URLs");
+        } else {
+            forwardStack.push(backStack.pop());
+            System.out.println(backStack.peek());
+        }
+    }
+
+
+    private static void mathPotato() {
+        PriorityQueue<String> queue = Arrays.stream(SCANNER.nextLine().split(" "))
+                .collect(Collectors.toCollection(PriorityQueue::new));
+
+        int n = Integer.parseInt(SCANNER.nextLine());
+
+        int cycles = 1;
+        while (queue.size() >= 2) {
+            for (int i = 0; i < n - 1; i++) {
+                queue.offer(queue.poll());
+            }
+            if (isPrime(cycles)) {
+                System.out.println("Prime " + queue.peek());
+                queue.offer(queue.poll());
+            } else {
+                System.out.println("Removed " + queue.poll());
+            }
+            cycles++;
+        }
+
+        System.out.println("Last is " + queue.poll());
+    }
+
+    private static boolean isPrime(int number) {
+        return number > 1
+                && IntStream.rangeClosed(2, (int) Math.sqrt(number))
+                .noneMatch(n -> (number % n == 0));
+    }
+
+    private static void hotPotato() {
+        Deque<String> queue = Arrays.stream(SCANNER.nextLine().split(" "))
+                .collect(Collectors.toCollection(ArrayDeque::new));
+
+        int n = Integer.parseInt(SCANNER.nextLine());
+
+        while (queue.size() >= 2) {
+            for (int i = 0; i < n - 1; i++) {
+                queue.offer(queue.poll());
+            }
+            System.out.println("Removed " + queue.poll());
+        }
+
+        System.out.println("Last is " + queue.poll());
     }
 
     private static void printerQueue() {
