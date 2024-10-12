@@ -1,7 +1,6 @@
-package stacksAndQueues.exercise;
+package com.stacksAndQueues.exercise;
 
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class Main {
