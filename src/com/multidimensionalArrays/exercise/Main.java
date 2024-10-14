@@ -17,7 +17,337 @@ public class Main {
 //        maximalSum();
 //        matrixShuffling();
 //        stringMatrixRotation();
+//        crossfire(); //70% passing tests!!!
+//        crossfire2Point0(); //90% passing tests!!!
+        theHeiganDance(); //Solution from 19.01.2023
+    }
 
+    private static void theHeiganDance() {
+        int[][] chamberMatrix = new int[15][15];
+
+        fillChamber(chamberMatrix);
+
+        int playerHitPoints = 18500;
+        int[] playerPosition = {7, 7};
+
+        double heiganHitPoints = 3000000;
+        double damageToHeigan = Double.parseDouble(SCANNER.nextLine());
+
+        String[] command;
+        String attack;
+        int attackRow;
+        int attackCol;
+
+        boolean isTakingCloudDamage = false;
+        boolean playerIsKilled = false;
+        boolean heiganIsDefeated = false;
+        boolean isKilledByEruption = false;
+
+        while (!playerIsKilled) {
+            fillChamber(chamberMatrix);
+            heiganHitPoints -= damageToHeigan;
+
+            if (isTakingCloudDamage) {
+                playerHitPoints = getCloudDamage(playerHitPoints);
+                isTakingCloudDamage = false;
+                if (playerHitPoints <= 0) {
+                    playerIsKilled = true;
+                }
+            }
+            if (heiganHitPoints <= 0) {
+                heiganIsDefeated = true;
+            }
+
+            command = SCANNER.nextLine().split("\\s+");
+
+            attack = command[0];
+            attackRow = Integer.parseInt(command[1]);
+            attackCol = Integer.parseInt(command[2]);
+
+            int previousRow = playerPosition[0];
+            int previousCol = playerPosition[1];
+
+
+            if (heiganIsDefeated || playerIsKilled) {
+                break;
+            }
+
+            switch (attack) {
+                case "Cloud":
+                    attackCells(chamberMatrix, attackRow, attackCol);
+                    if (playerIsInAttacksRange(playerPosition, attackRow, attackCol)) {
+
+                        playerMove(chamberMatrix, playerPosition);
+
+                        if (playerDidNotMove(playerPosition, previousRow, previousCol)
+                                || playerIsInAttacksRange(playerPosition, attackRow, attackCol)) {
+
+                            playerHitPoints = getCloudDamage(playerHitPoints);
+
+                            isTakingCloudDamage = true;
+                        }
+                    }
+
+                    if (playerHitPoints <= 0) {
+                        playerIsKilled = true;
+                        break;
+                    }
+                    break;
+                case "Eruption":
+                    attackCells(chamberMatrix, attackRow, attackCol);
+                    if (playerIsInAttacksRange(playerPosition, attackRow, attackCol)) {
+
+                        playerMove(chamberMatrix, playerPosition);
+
+                        if (playerDidNotMove(playerPosition, previousRow, previousCol)
+                                || playerIsInAttacksRange(playerPosition, attackRow, attackCol)) {
+
+                            playerHitPoints = getEruptionDamage(playerHitPoints);
+                        }
+                    }
+
+                    if (playerHitPoints <= 0) {
+                        playerIsKilled = true;
+                        isKilledByEruption = true;
+                        break;
+                    }
+
+                    break;
+            }
+        }
+
+        if (heiganIsDefeated) {
+            System.out.println("Heigan: Defeated!");
+        } else {
+            System.out.printf("Heigan: %.2f%n", heiganHitPoints);
+        }
+
+        if (playerIsKilled) {
+            if (isKilledByEruption) {
+                System.out.println("Player: Killed by Eruption");
+            } else {
+                System.out.println("Player: Killed by Plague Cloud");
+            }
+        } else {
+            System.out.println("Player: " + playerHitPoints);
+        }
+
+        System.out.println("Final position: " + playerPosition[0] + ", " + playerPosition[1]);
+    }
+
+    private static int getEruptionDamage(int playerHitPoints) {
+        return playerHitPoints - 6000;
+    }
+
+    private static boolean playerIsInAttacksRange(int[] playerPosition, int attackRow, int attackCol) {
+        for (int row = attackRow - 1; row <= attackRow + 1; row++) {
+            for (int col = attackCol - 1; col <= attackCol + 1; col++) {
+                if (playerPosition[0] == row && playerPosition[1] == col) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static void attackCells(int[][] chamberMatrix, int attackRow, int attackCol) {
+        for (int row = attackRow - 1; row <= attackRow + 1; row++) {
+            for (int col = attackCol - 1; col <= attackCol + 1; col++) {
+                if (isInBounds(row, col, chamberMatrix)) {
+                    chamberMatrix[row][col] = -1;
+                }
+            }
+        }
+    }
+
+    private static boolean playerDidNotMove(int[] playerPosition, int previousRow, int previousCol) {
+        return previousRow == playerPosition[0] && previousCol == playerPosition[1];
+    }
+
+    private static int getCloudDamage(int playerHitPoints) {
+        return playerHitPoints - 3500;
+    }
+
+    private static void playerMove(int[][] chamberMatrix, int[] playerPosition) {
+        if (!cellIsDamaged(playerPosition[0] - 1, playerPosition[1], chamberMatrix)
+                && isInBounds(playerPosition[0] - 1, playerPosition[1], chamberMatrix)) {
+            playerPosition[0] -= 1;
+        } else if (!cellIsDamaged(playerPosition[0], playerPosition[1] + 1, chamberMatrix)
+                && isInBounds(playerPosition[0], playerPosition[1] + 1, chamberMatrix)) {
+            playerPosition[1] += 1;
+        } else if (!cellIsDamaged(playerPosition[0] + 1, playerPosition[1], chamberMatrix)
+                && isInBounds(playerPosition[0] + 1, playerPosition[1], chamberMatrix)) {
+            playerPosition[0] += 1;
+        } else if (!cellIsDamaged(playerPosition[0], playerPosition[1] - 1, chamberMatrix)
+                && isInBounds(playerPosition[0], playerPosition[1] - 1, chamberMatrix)) {
+            playerPosition[1] -= 1;
+        }
+    }
+
+    private static void fillChamber(int[][] chamberMatrix) {
+        for (int row = 0; row < 15; row++) {
+            for (int col = 0; col < 15; col++) {
+                chamberMatrix[row][col] = 1;
+            }
+        }
+    }
+
+    private static boolean isInBounds(int row, int col, int[][] matrix) {
+        return (row >= 0 && col >= 0 && row < matrix.length && col < matrix[row].length);
+    }
+
+    private static boolean cellIsDamaged(int row, int col, int[][] matrix) {
+        if (isInBounds(row, col, matrix)) {
+            return matrix[row][col] < 0;
+        }
+        return false;
+    }
+
+    private static void crossfire2Point0() {
+        int[] dimensions = parseIntArray(SCANNER.nextLine());
+
+        List<List<Integer>> matrix = new ArrayList<>();
+        int i = 1;
+        for (int row = 0; row < dimensions[0]; row++) {
+            matrix.add(new ArrayList<>());
+            for (int col = 0; col < dimensions[1]; col++) {
+                matrix.get(row).add(i++);
+            }
+        }
+
+        String input = SCANNER.nextLine();
+
+
+        while (!"Nuke it from orbit".equals(input)) {
+            int[] explosionInfo = parseIntArray(input);
+            int row = explosionInfo[0];
+            int col = explosionInfo[1];
+            int radius = explosionInfo[2];
+
+            if (radius == 0 && isInBounds(matrix, row, col)) {
+                matrix.get(row).set(col, -1);
+            } else {
+                if (row >= 0 && row < matrix.size()) {
+                    int startCol = Math.max(0, col - radius);
+                    int endCol = Math.min(col + radius, matrix.get(row).size() - 1);
+
+                    for (int c = endCol; c >= startCol; c--) {
+                        matrix.get(row).set(c, -1);
+                    }
+                }
+
+                if (col >= 0) {
+                    int startRow = Math.max(row - radius, 0);
+                    int endRow = Math.min(row + radius, matrix.size());
+                    for (int r = startRow; r < endRow; r++) {
+                        if (col < matrix.get(r).size()) {
+                            matrix.get(r).set(col, -1);
+                        }
+                    }
+                }
+
+            }
+
+            matrix.forEach(r -> r.removeIf(n -> n <= 0));
+            matrix.removeIf(List::isEmpty);
+
+            input = SCANNER.nextLine();
+        }
+
+
+        matrix.forEach(row -> System.out.println(row.toString().replaceAll("[\\,\\[\\]]", "")));
+
+    }
+
+    private static void crossfire() {
+        int[] dimensions = parseIntArray(SCANNER.nextLine());
+
+        int[][] matrix = new int[dimensions[0]][dimensions[1]];
+
+        fillMatrix(matrix);
+
+        String input = SCANNER.nextLine();
+
+        while (!"Nuke it from orbit".equals(input)) {
+            int[] explosionInfo = parseIntArray(input);
+            int row = explosionInfo[0];
+            int col = explosionInfo[1];
+            int radius = explosionInfo[2];
+
+            if (radius > 0) {
+                blowMatrix(matrix, row, col, radius);
+                matrix = removeBlownIndices(matrix);
+            } else {
+                if (isInBounds(matrix, row, col)) {
+                    matrix[row][col] = -1;
+                    matrix = removeBlownIndices(matrix);
+                }
+            }
+
+            input = SCANNER.nextLine();
+        }
+
+        printMatrixWithUnevenLength(matrix);
+
+    }
+
+    private static void printMatrixWithUnevenLength(int[][] matrix) {
+        for (int[] row : matrix) {
+            for (int col : row) {
+                System.out.print(col + " ");
+            }
+            System.out.println();
+        }
+    }
+
+
+    private static void blowMatrix(int[][] matrix, int row, int col, int radius) {
+        if (col >= 0) {
+            for (int r = Math.max(row - radius, 0); r < Math.min(row + radius, matrix.length); r++) {
+                if (isInBounds(matrix, r, col)) {
+                    matrix[r][col] = -1;
+                }
+            }
+        }
+
+        if (row >= 0 && row < matrix.length) {
+            for (int c = Math.max(col - radius, 0); c < Math.min(col + radius, matrix[row].length); c++) {
+                if (isInBounds(matrix, row, c)) {
+                    matrix[row][c] = -1;
+                }
+
+            }
+        }
+    }
+
+    private static int[][] removeBlownIndices(int[][] matrix) {
+        for (int row = 0; row < matrix.length; row++) {
+            int[] newRow = Arrays.stream(matrix[row]).filter(n -> n >= 0).toArray();
+            if (newRow == null || newRow.length == 0) {
+                matrix = getNewMatrix(matrix, row);
+                row--;
+            } else {
+                matrix[row] = newRow;
+            }
+        }
+
+        return matrix;
+    }
+
+    private static int[][] getNewMatrix(int[][] matrix, int row) {
+        int[][] newMatrix = new int[matrix.length - 1][];
+
+        if (row >= 0) System.arraycopy(matrix, 0, newMatrix, 0, row);
+
+        if (newMatrix.length - row >= 0) System.arraycopy(matrix, row + 1, newMatrix, row, newMatrix.length - row);
+
+        return newMatrix;
+    }
+
+    private static void fillMatrix(int[][] matrix) {
+        for (int row = 0; row < matrix.length; row++) {
+            matrix[row] = IntStream.rangeClosed(row * matrix[row].length + 1, (row + 1) * matrix[row].length).toArray();
+        }
     }
 
     private static void stringMatrixRotation() {
@@ -85,7 +415,7 @@ public class Main {
     }
 
     private static void matrixShuffling() {
-        int[] dimensions = readIntArray();
+        int[] dimensions = parseIntArray(SCANNER.nextLine());
         String[][] matrix = new String[dimensions[0]][dimensions[1]];
 
         fillMatrix(matrix);
@@ -141,8 +471,16 @@ public class Main {
         }
     }
 
+    private static boolean isInBounds(int[][] matrix, int row, int col) {
+        return row >= 0 && row < matrix.length && col >= 0 && col < matrix[row].length;
+    }
+
+    private static boolean isInBounds(List<List<Integer>> matrix, int row, int col) {
+        return row >= 0 && row < matrix.size() && col >= 0 && col < matrix.get(row).size();
+    }
+
     private static void maximalSum() {
-        int[] dimensions = readIntArray();
+        int[] dimensions = parseIntArray(SCANNER.nextLine());
 
         int[][] matrix = new int[dimensions[0]][dimensions[1]];
         fillIntMatrix(matrix);
@@ -235,8 +573,8 @@ public class Main {
         }
     }
 
-    private static int[] readIntArray() {
-        return Arrays.stream(SCANNER.nextLine().split(" ")).mapToInt(Integer::parseInt).toArray();
+    private static int[] parseIntArray(String text) {
+        return Arrays.stream(text.split(" ")).mapToInt(Integer::parseInt).toArray();
     }
 
     private static void matrixOfPalindromes() {
