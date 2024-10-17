@@ -1,7 +1,6 @@
 package com.setsAndMapsAdvanced.exercise;
 
 import java.util.*;
-import java.util.function.IntToDoubleFunction;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
