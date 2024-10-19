@@ -72,6 +72,7 @@ public class Main {
     private static void addVAT() {
         UnaryOperator<Double> addVat = n -> n * 1.2;
 
+        System.out.println("Prices with VAT:");
         Arrays.stream(SCANNER.nextLine().split(", "))
                 .mapToDouble(n -> addVat.apply(Double.parseDouble(n)))
                 .forEach(n -> System.out.printf("%.2f%n", n));
