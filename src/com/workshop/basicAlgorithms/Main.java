@@ -11,7 +11,12 @@ public class Main {
     public static void main(String[] args) {
 //        recursiveArraySum();
 //        recursiveFactorial();
-        sumOfCoins();
+//        sumOfCoins();
+        mergeSort();
+    }
+
+    private static void mergeSort() {
+
     }
 
     private static void sumOfCoins() {
